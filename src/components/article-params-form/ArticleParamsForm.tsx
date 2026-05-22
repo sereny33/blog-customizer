@@ -5,7 +5,8 @@ import { Select } from 'src/ui/select';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 
 import styles from './ArticleParamsForm.module.scss';
 import {
@@ -15,20 +16,32 @@ import {
 	backgroundColors,
 	contentWidthArr,
 	OptionType,
+	defaultArticleState,
+	ArticleStateType,
 } from 'src/constants/articleProps';
 
-export const ArticleParamsForm = () => {
-	const [isOpen, setIsOpen] = useState(false);
+type TArticleParamsFormProps = {
+	changeState: (state: ArticleStateType) => void;
+};
 
-	const [formState, setFormState] = useState({
-		font: fontFamilyOptions[0],
-		fontColor: fontColors[0],
-		fontSize: fontSizeOptions[0],
-		bgColor: backgroundColors[0],
-		contentWidth: contentWidthArr[0],
+export const ArticleParamsForm = ({ changeState }: TArticleParamsFormProps) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const asideRef = useRef(null);
+	useOutsideClickClose({
+		isOpen,
+		rootRef: asideRef,
+		onChange: setIsOpen,
 	});
 
-	const hangleFormChange =
+	const [formState, setFormState] = useState({
+		fontFamilyOption: defaultArticleState.fontFamilyOption,
+		fontColor: defaultArticleState.fontColor,
+		fontSizeOption: defaultArticleState.fontSizeOption,
+		backgroundColor: defaultArticleState.backgroundColor,
+		contentWidth: defaultArticleState.contentWidth,
+	});
+
+	const handleFormChange =
 		(key: keyof typeof formState) => (option: OptionType) => {
 			setFormState((prev) => ({
 				...prev,
@@ -37,41 +50,55 @@ export const ArticleParamsForm = () => {
 			console.log(formState);
 		};
 
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		changeState(formState);
+	};
+
+	const handleReset = () => {
+		setFormState(defaultArticleState);
+		changeState(defaultArticleState);
+	};
+
 	return (
 		<>
 			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
 			<aside
-				className={styles.container + ` ${isOpen && styles.container_open}`}>
-				<form className={styles.form}>
-					<Text as={'h2'} size={31} weight={800} uppercase dynamicLite>
+				className={styles.container + ` ${isOpen && styles.container_open}`}
+				ref={asideRef}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
+					<Text as={'h2'} size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
 					<Select
-						selected={formState.font}
+						selected={formState.fontFamilyOption}
 						options={fontFamilyOptions}
-						onChange={hangleFormChange('font')}
+						onChange={handleFormChange('fontFamilyOption')}
 						title='Шрифт'></Select>
 					<RadioGroup
 						name='Размер шрифта'
 						options={fontSizeOptions}
-						selected={formState.fontSize}
-						onChange={hangleFormChange('fontSize')}
+						selected={formState.fontSizeOption}
+						onChange={handleFormChange('fontSizeOption')}
 						title='Размер шрифта'></RadioGroup>
 					<Select
 						selected={formState.fontColor}
 						options={fontColors}
-						onChange={hangleFormChange('fontColor')}
+						onChange={handleFormChange('fontColor')}
 						title='Цвет шрифта'></Select>
 					<Separator></Separator>
 					<Select
-						selected={formState.bgColor}
+						selected={formState.backgroundColor}
 						options={backgroundColors}
-						onChange={hangleFormChange('bgColor')}
+						onChange={handleFormChange('backgroundColor')}
 						title='Цвет фона'></Select>
 					<Select
 						selected={formState.contentWidth}
 						options={contentWidthArr}
-						onChange={hangleFormChange('contentWidth')}
+						onChange={handleFormChange('contentWidth')}
 						title='Ширина контента'></Select>
 					<div className={styles.bottomContainer}>
 						<Button title='Сбросить' htmlType='reset' type='clear' />
