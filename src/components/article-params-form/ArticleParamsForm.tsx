@@ -19,6 +19,7 @@ import {
 	defaultArticleState,
 	ArticleStateType,
 } from 'src/constants/articleProps';
+import clsx from 'clsx';
 
 type TArticleParamsFormProps = {
 	changeState: (state: ArticleStateType) => void;
@@ -64,7 +65,7 @@ export const ArticleParamsForm = ({ changeState }: TArticleParamsFormProps) => {
 		<>
 			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
 			<aside
-				className={styles.container + ` ${isOpen && styles.container_open}`}
+				className={clsx(styles.container, isOpen && styles.container_open)}
 				ref={asideRef}>
 				<form
 					className={styles.form}
